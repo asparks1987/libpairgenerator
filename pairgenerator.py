@@ -3,6 +3,8 @@ import datetime
 import pytz
 import json
 import os
+import tkinter as tk
+from tkinter import messagebox, filedialog, Text, Scrollbar
 
 class PairGenerator:
     def __init__(self, num_inputs, num_pairs):
@@ -13,7 +15,7 @@ class PairGenerator:
 
     def generate_pairs(self):
         """Generate pairs of input arrays and the XOR of their rounded values."""
-        return [(self._generate_input_values(), self._generate_timestamp(), self._calculate_xor(input_values))
+        return [(input_values := self._generate_input_values(), self._generate_timestamp(), self._calculate_xor(input_values))
                 for _ in range(self.num_pairs)]
 
     def _generate_input_values(self):
@@ -53,23 +55,39 @@ class PairGenerator:
         input_values, timestamp, expected_output = json.loads(line.strip())
         return input_values, datetime.datetime.fromisoformat(timestamp), expected_output
 
-
-def main():
+def save_pairs():
     gen = PairGenerator(15, 20000)
-    pairs = gen.generate_pairs()
-    gen.save_to_file("test.txt")
+    filename = filedialog.asksaveasfilename(defaultextension=".txt")
+    if filename:  # If a filename is given (i.e., the dialog is not cancelled)
+        gen.save_to_file(filename)
+        messagebox.showinfo("Success", "Pairs generated and saved to file.")
 
-    try:
-        inputs, timestamps, expected_outputs = gen.load_from_file("test.txt")
-    except FileNotFoundError as e:
-        print(e)
-        return
+def load_pairs():
+    gen = PairGenerator(15, 20000)
+    filename = filedialog.askopenfilename()
+    if filename:  # If a filename is given
+        try:
+            inputs, timestamps, expected_outputs = gen.load_from_file(filename)
+        except FileNotFoundError as e:
+            messagebox.showerror("Error", str(e))
+            return
 
-    for i, (input, expected_output) in enumerate(zip(inputs, expected_outputs)):
-        print(f"Pair {i + 1}:")
-        print(f"  Input: {input}")
-        print(f"  Expected output: {expected_output}")
+        result = "\n".join(
+            f"Pair {i + 1}:\n  Input: {input}\n  Expected output: {expected_output}"
+            for i, (input, expected_output) in enumerate(zip(inputs, expected_outputs))
+        )
 
+        # Create a new window to display the loaded pairs
+        top = tk.Toplevel(root)
+        text = Text(top)
+        text.insert('1.0', result)
+        text.pack()
+        scrollbar = Scrollbar(top, command=text.yview)
+        scrollbar.pack(side='right', fill='y')
+        text['yscrollcommand'] = scrollbar.set
 
 if __name__ == "__main__":
-    main()
+    root = tk.Tk()
+    tk.Button(root, text="Generate pairs", command=save_pairs).pack()
+    tk.Button(root, text="Load pairs", command=load_pairs).pack()
+    root.mainloop()
