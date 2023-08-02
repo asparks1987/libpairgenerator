@@ -1,40 +1,30 @@
 import tkinter as tk
-from tkinter import messagebox, filedialog, Text, Scrollbar
+from tkinter import messagebox, filedialog, simpledialog
 from libpairgenerator import PairGenerator  # Assuming the library is named libpairgenerator
 
-def save_pairs():
-    gen = PairGenerator(3, 59000)
+def get_user_input(root):
+    num_inputs = simpledialog.askinteger("Number of Inputs", "Enter number of inputs", parent=root, minvalue=1)
+    num_pairs = simpledialog.askinteger("Number of Pairs", "Enter number of pairs", parent=root, minvalue=1)
+    return num_inputs, num_pairs
+
+def generate_floats():
     filename = filedialog.asksaveasfilename(defaultextension=".txt")
-    if filename:  # If a filename is given (i.e., the dialog is not cancelled)
+    num_inputs, num_pairs = get_user_input(root)
+    if filename and num_inputs is not None and num_pairs is not None:
+        gen = PairGenerator(num_inputs, num_pairs)
         gen.save_to_file(filename)
-        messagebox.showinfo("Success", "Pairs generated and saved to file.")
+        messagebox.showinfo("Success", "Float pairs generated and saved to file.")
 
-def load_pairs():
-    gen = PairGenerator(3, 59000)
-    filename = filedialog.askopenfilename()
-    if filename:  # If a filename is given
-        try:
-            inputs, timestamps, expected_outputs = gen.load_from_file(filename)
-        except FileNotFoundError as e:
-            messagebox.showerror("Error", str(e))
-            return
-
-        result = "\n".join(
-            f"Pair {i + 1}:\n  Input: {input}\n  Expected output: {expected_output}"
-            for i, (input, expected_output) in enumerate(zip(inputs, expected_outputs))
-        )
-
-        # Create a new window to display the loaded pairs
-        top = tk.Toplevel(root)
-        text = Text(top)
-        text.insert('1.0', result)
-        text.pack()
-        scrollbar = Scrollbar(top, command=text.yview)
-        scrollbar.pack(side='right', fill='y')
-        text['yscrollcommand'] = scrollbar.set
+def generate_ints():
+    filename = filedialog.asksaveasfilename(defaultextension=".txt")
+    num_inputs, num_pairs = get_user_input(root)
+    if filename and num_inputs is not None and num_pairs is not None:
+        gen = PairGenerator(num_inputs, num_pairs, int_values=True)
+        gen.save_to_file(filename)
+        messagebox.showinfo("Success", "Int pairs generated and saved to file.")
 
 if __name__ == "__main__":
     root = tk.Tk()
-    tk.Button(root, text="Generate pairs", command=save_pairs).pack()
-    tk.Button(root, text="Load pairs", command=load_pairs).pack()
+    tk.Button(root, text="Generate Floats", command=generate_floats).pack()
+    tk.Button(root, text="Generate Ints", command=generate_ints).pack()
     root.mainloop()
