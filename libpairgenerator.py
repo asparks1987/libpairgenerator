@@ -46,9 +46,19 @@ class PairGenerator:
     def load_from_file(self, filename):
         if not os.path.isfile(filename):
             raise FileNotFoundError(f"No such file: '{filename}'")
-        with open(filename, 'r') as f:
-            pairs = [self._parse_line(line) for line in f]
-            return zip(*pairs) 
+        
+        pairs = []
+        with open(filename, 'r', newline='') as f:
+            reader = csv.reader(f)
+            next(reader)  # skip the header row
+            for row in reader:
+                # convert string back to a list
+                input_values = list(map(float, row[0].split(', ')))
+                timestamp = datetime.datetime.fromisoformat(row[1])
+                expected_output = int(row[2])
+                pairs.append((input_values, timestamp, expected_output))
+                
+        return zip(*pairs) 
 
     def _parse_line(self, line):
         input_values, timestamp, expected_output = json.loads(line.strip())
