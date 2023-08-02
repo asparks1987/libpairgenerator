@@ -3,14 +3,14 @@ from tkinter import messagebox, filedialog, Text, Scrollbar
 from libpairgenerator import PairGenerator  # Assuming the library is named libpairgenerator
 
 def save_pairs():
-    gen = PairGenerator(15, 20000)
+    gen = PairGenerator(3, 59000)
     filename = filedialog.asksaveasfilename(defaultextension=".txt")
     if filename:  # If a filename is given (i.e., the dialog is not cancelled)
         gen.save_to_file(filename)
         messagebox.showinfo("Success", "Pairs generated and saved to file.")
 
 def load_pairs():
-    gen = PairGenerator(15, 20000)
+    gen = PairGenerator(3, 59000)
     filename = filedialog.askopenfilename()
     if filename:  # If a filename is given
         try:
